@@ -2,6 +2,8 @@ package org.example;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -9,10 +11,14 @@ import java.nio.file.StandardOpenOption;
 
 public class MyFile {
 
-  static void createMyFile(Path path) {
+  public static void createMyFile(Path path) {
     try {
       Path newFilePath = Paths.get(path.toUri());
       Files.createFile(newFilePath);
+    } catch (FileAlreadyExistsException e) {
+      System.out.println("File already exists!");
+    } catch (AccessDeniedException e) {
+      System.out.printf("You do not have permission to use path: %s\n", path);
     } catch (IOException e) {
       System.out.println("Please enter valid file path");
     }
@@ -21,16 +27,16 @@ public class MyFile {
   public static void readMyFile(Path path) {
     Path filePath = Paths.get(path.toUri());
     BufferedReader reader;
-    String line = "";
-      try {git remote add origin git@github.com:andreymasunov1/java-exercise-file-manager.git
+      try {
         reader = Files.newBufferedReader(filePath);
         if (reader.ready()) {
-          line = reader.readLine();
+          System.out.println(reader.readLine());
         }
+      } catch (SecurityException e) {
+        System.out.println("You do not have permission to use path: %s");
       } catch (IOException e) {
         System.out.println("There is an issue while reading the file");
       }
-    System.out.printf(line);
   }
 
   public static void writeIntoMyFile(Path path, String stringForFile) {
@@ -39,6 +45,8 @@ public class MyFile {
           Paths.get(path.toUri()),
           stringForFile.getBytes(),
           StandardOpenOption.APPEND);
+    } catch (SecurityException e) {
+      System.out.println("You do not have permission to use path: %s");
     } catch (IOException e) {
       System.out.println("There is an issue while writing the file");
     }
@@ -46,9 +54,13 @@ public class MyFile {
 
   public static void deleteMyFile(Path path) {
     try {
-      Files.deleteIfExists(path);
+      if (Files.deleteIfExists(path)) {
+        System.out.println("File deleted!");
+      }
+    } catch (SecurityException e) {
+      System.out.println("You do not have permission to use path: %s");
     } catch (IOException e) {
-      System.out.printf("There is an issue while deleting the file");
+      System.out.println("There is an issue while deleting the file");
     }
   }
 }
